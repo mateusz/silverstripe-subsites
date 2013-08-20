@@ -1,7 +1,46 @@
 (function($) {
 	$.entwine('ss', function($) {
-		$('#SubsitesSelect').live('change', function() {
-			window.location.search=$.query.set('SubsiteID', $(this).val());
+
+		$('#SubsitesSelect').entwine({
+			onadd:function(){
+				this.on('change', function(){
+					window.location.search=$.query.set('SubsiteID', $(this).val());
+				});
+			}
+		});
+
+		/* 
+		 * Reload subsites dropdown when links are processed 
+		 */
+		$('.cms-container .cms-menu-list li a').entwine({
+			onclick: function(e) {
+				// Prevent menu updating twice when subsite admin is entered
+				if(this.closest('li').attr('id') !== 'Menu-SubsiteAdmin'){
+					$('.cms-container').loadPanel('admin/subsites', null, {pjax: 'SubsiteList'});
+				}
+				this._super();
+			}
+		});
+
+		/* 
+		 * Reload subsites dropdown when the admin area reloads (for deleting sites) 
+		 */
+		$('.cms-container .SubsiteAdmin .cms-content-fields').entwine({
+			onadd: function(e) {
+				$('.cms-container').loadPanel('admin/subsites', null, {pjax: 'SubsiteList'});
+				this._super();
+			}
+		});
+
+		
+		/* 
+		 * Reload subsites dropdown when subsites are added or names are modified
+		 */
+		$('.cms-container .cms-content-fields .subsite-model').entwine({
+			onadd: function(e) {
+				$('.cms-container').loadPanel('admin/subsites', null, {pjax: 'SubsiteList'});
+				this._super();
+			}
 		});
 		
 		// Subsite tab of Group editor
@@ -95,11 +134,7 @@
 					}
 
 				});
-
 			}
-
 		});
-
 	});
-
 })(jQuery);
