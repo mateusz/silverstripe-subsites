@@ -9,6 +9,44 @@
 			}
 		});
 
+		$('.cms-container').entwine({
+
+			SubsiteCurrentXHR: null,
+
+			/**
+			 * LeftAndMain does not give us possibility to parallel-fetch a PJAX fragment.
+			 * We provide our own fetcher that bypasses the history - that's because we
+			 * don't want to load a panel, but rather just a subsite dropdown.
+			 */
+			subsiteFetchPjaxFragment: function(url, pjaxFragment) {
+
+				// Make sure only one subsite XHR request is ongoing.
+				if(this.getSubsiteCurrentXHR()) this.getSubsiteCurrentXHR().abort();
+
+				var self = this,
+					headers = {},
+					baseUrl = $('base').attr('href'),
+					url = $.path.isAbsoluteUrl(url) ? url : $.path.makeUrlAbsolute(url, baseUrl);
+
+				headers['X-Pjax'] = pjaxFragment;
+
+				var xhr = $.ajax({
+					headers: headers,
+					url: url,
+					complete: function() {
+						self.setSubsiteCurrentXHR(null);
+					},
+					success: function(data, status, xhr) {
+						var els = self.handleAjaxResponse(data, status, xhr, null);
+					}
+				});
+
+				this.setSubsiteCurrentXHR(xhr);
+
+			}
+
+		});
+
 		/* 
 		 * Reload subsites dropdown when links are processed 
 		 */
@@ -16,9 +54,9 @@
 			onclick: function(e) {
 				// Prevent menu updating twice when subsite admin is entered
 				if(this.closest('li').attr('id') !== 'Menu-SubsiteAdmin'){
-					$('.cms-container').loadPanel('admin/subsites', null, {pjax: 'SubsiteList'});
+					$('.cms-container').subsiteFetchPjaxFragment('admin/subsites/', 'SubsiteList');
 				}
-				this._super();
+				this._super(e);
 			}
 		});
 
@@ -27,8 +65,8 @@
 		 */
 		$('.cms-container .SubsiteAdmin .cms-content-fields').entwine({
 			onadd: function(e) {
-				$('.cms-container').loadPanel('admin/subsites', null, {pjax: 'SubsiteList'});
-				this._super();
+				$('.cms-container').subsiteFetchPjaxFragment('admin/subsites/', 'SubsiteList');
+				this._super(e);
 			}
 		});
 
@@ -38,8 +76,8 @@
 		 */
 		$('.cms-container .cms-content-fields .subsite-model').entwine({
 			onadd: function(e) {
-				$('.cms-container').loadPanel('admin/subsites', null, {pjax: 'SubsiteList'});
-				this._super();
+				$('.cms-container').subsiteFetchPjaxFragment('admin/subsites/', 'SubsiteList');
+				this._super(e);
 			}
 		});
 		
