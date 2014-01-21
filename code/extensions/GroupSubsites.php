@@ -7,7 +7,7 @@
 class GroupSubsites extends DataExtension implements PermissionProvider {
 
 	private static $db = array(
-		'AccessAllSubsites' => 'Boolean'
+		'AccessDefaultSite' => 'Boolean'
 	);
 
 	private static $many_many = array(
@@ -15,7 +15,7 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 	);
 
 	private static $defaults = array(
-		'AccessAllSubsites' => true
+		'AccessDefaultSite' => true
 	);
 
 	/**
@@ -32,7 +32,8 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 				SELECT "ID", "SubsiteID" FROM "Group" WHERE "SubsiteID" > 0');
 				
 			// Migrate global-access data
-			DB::query('UPDATE "Group" SET "AccessAllSubsites" = 1 WHERE "SubsiteID" = 0');
+			DB::query('UPDATE "Group" SET "AccessDefaultSite" = 1 WHERE "SubsiteID" = 0');
+			// TODO: add access to all subsites
 			
 			// Move the field out of the way so that this migration doesn't get executed again
 			DB::getConn()->renameField('Group', 'SubsiteID', '_obsolete_SubsiteID');
@@ -41,10 +42,11 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 		// Make all previous groups global-access groups
 		} else if(!DB::query('SELECT "Group"."ID" FROM "Group" 
 			LEFT JOIN "Group_Subsites" ON "Group_Subsites"."GroupID" = "Group"."ID" AND "Group_Subsites"."SubsiteID" > 0
-			WHERE "AccessAllSubsites" = 1
+			WHERE "AccessDefaultSite" = 1
 			OR "Group_Subsites"."GroupID" IS NOT NULL ')->value()) {
 			
-			DB::query('UPDATE "Group" SET "AccessAllSubsites" = 1');
+			DB::query('UPDATE "Group" SET "AccessDefaultSite" = 1');
+			// TODO: add access to all subsites
 		}
 	}
 	
@@ -59,11 +61,11 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 			// Interface is different if you have the rights to modify subsite group values on
 			// all subsites
 			if(isset($subsiteMap[0])) {
-				$fields->addFieldToTab("Root.Subsites", new OptionsetField("AccessAllSubsites", 
-					_t('GroupSubsites.ACCESSRADIOTITLE', 'Give this group access to'),
+				$fields->addFieldToTab("Root.Subsites", new OptionsetField("AccessDefaultSite",
+					_t('GroupSubsites.ACCESSDEFATULSITE', 'Give this group access to the default site'),
 					array(
-						1 => _t('GroupSubsites.ACCESSALL', "All subsites"),
-						0 => _t('GroupSubsites.ACCESSONLY', "Only these subsites"),
+						1 => _t('GroupSubsites.ACCESSDEFAULTALLOW', "Allow"),
+						0 => _t('GroupSubsites.ACCESSDEFAULTDENY', "Deny"),
 					)
 				));
 
@@ -92,8 +94,8 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 	 * of the security admin interface.
 	 */
 	function alternateTreeTitle() {
-		if($this->owner->AccessAllSubsites) {
-			$title = _t('GroupSubsites.GlobalGroup', 'global group');
+		if($this->owner->AccessDefaultSite) {
+			$title = _t('GroupSubsites.DefaultGroup', 'default site group');
 			return htmlspecialchars($this->owner->Title, ENT_QUOTES) . ' <i>(' . $title . ')</i>';
 		} else {
 			$subsites = Convert::raw2xml(implode(", ", $this->owner->Subsites()->column('Title')));
@@ -127,17 +129,16 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 				if($subsiteID) {
 					$query->addLeftJoin("Group_Subsites", "\"Group_Subsites\".\"GroupID\" 
 						= \"Group\".\"ID\" AND \"Group_Subsites\".\"SubsiteID\" = $subsiteID");
-					$query->addWhere("(\"Group_Subsites\".\"SubsiteID\" IS NOT NULL OR
-						\"Group\".\"AccessAllSubsites\" = 1)");
+					$query->addWhere("(\"Group_Subsites\".\"SubsiteID\" IS NOT NULL)");
 				} else {
-					$query->addWhere("\"Group\".\"AccessAllSubsites\" = 1");
+					$query->addWhere("\"Group\".\"AccessDefaultSite\" = 1");
 				}
 			}
 			
 			// WORKAROUND for databases that complain about an ORDER BY when the column wasn't selected (e.g. SQL Server)
 			$select=$query->getSelect();
 			if(isset($select[0]) && !$select[0] == 'COUNT(*)') {
-				$query->orderby = "\"AccessAllSubsites\" DESC" . ($query->orderby ? ', ' : '') . $query->orderby;
+				$query->orderby = "\"AccessDefaultSite\" DESC" . ($query->orderby ? ', ' : '') . $query->orderby;
 			}
 		}
 	}
@@ -146,7 +147,7 @@ class GroupSubsites extends DataExtension implements PermissionProvider {
 		// New record test approximated by checking whether the ID has changed.
 		// Note also that the after write test is only used when we're *not* on a subsite
 		if($this->owner->isChanged('ID') && !Subsite::currentSubsiteID()) {
-			$this->owner->AccessAllSubsites = 1;
+			$this->owner->AccessDefaultSite = 1;
 		}
 	}
 	

@@ -14,9 +14,9 @@ class GroupSubsitesTest extends BaseSubsiteTest {
 	function testAlternateTreeTitle() {
 		$group = new Group();
 		$group->Title = 'The A Team';
-		$group->AccessAllSubsites = true;
-		$this->assertEquals($group->getTreeTitle(), 'The A Team <i>(global group)</i>');
-		$group->AccessAllSubsites = false;
+		$group->AccessDefaultSite = true;
+		$this->assertEquals($group->getTreeTitle(), 'The A Team <i>(default site group)</i>');
+		$group->AccessDefaultSite = false;
 		$group->write();
 		$group->Subsites()->add($this->objFromFixture('Subsite', 'domaintest1'));
 		$group->Subsites()->add($this->objFromFixture('Subsite', 'domaintest2'));

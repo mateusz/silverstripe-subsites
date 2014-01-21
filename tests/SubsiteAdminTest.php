@@ -30,7 +30,7 @@ class SubsiteAdminTest extends BaseSubsiteTest {
 	 * Test that the main-site user with ADMIN permissions can access all subsites, regardless
 	 * of whether he is in a subsite-specific group or not.
 	 */
-	function testMainsiteAdminCanAccessAllSubsites() {
+	function testMainsiteAdminCanAccessDefaultSite() {
 		$member = $this->objFromFixture('Member', 'admin');
 		Session::set("loggedInAs", $member->ID);
 		

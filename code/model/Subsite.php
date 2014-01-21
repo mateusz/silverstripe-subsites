@@ -306,7 +306,7 @@ class Subsite extends DataObject implements PermissionProvider {
 		$subsites = DataList::create('Subsite')
 			->where("\"Subsite\".\"Title\" != ''")
 			->leftJoin('Group_Subsites', "\"Group_Subsites\".\"SubsiteID\" = \"Subsite\".\"ID\"")
-			->innerJoin('Group', "\"Group\".\"ID\" = \"Group_Subsites\".\"GroupID\" OR \"Group\".\"AccessAllSubsites\" = 1")
+			->innerJoin('Group', "\"Group\".\"ID\" = \"Group_Subsites\".\"GroupID\"")
 			->innerJoin('Group_Members', "\"Group_Members\".\"GroupID\"=\"Group\".\"ID\" AND \"Group_Members\".\"MemberID\" = $member->ID")
 			->innerJoin('Permission', "\"Group\".\"ID\"=\"Permission\".\"GroupID\" AND \"Permission\".\"Code\" IN ($SQL_codes, 'CMS_ACCESS_LeftAndMain', 'ADMIN')");
 
@@ -315,7 +315,7 @@ class Subsite extends DataObject implements PermissionProvider {
 		$rolesSubsites = DataList::create('Subsite')
 			->where("\"Subsite\".\"Title\" != ''")
 			->leftJoin('Group_Subsites', "\"Group_Subsites\".\"SubsiteID\" = \"Subsite\".\"ID\"")
-			->innerJoin('Group', "\"Group\".\"ID\" = \"Group_Subsites\".\"GroupID\" OR \"Group\".\"AccessAllSubsites\" = 1")
+			->innerJoin('Group', "\"Group\".\"ID\" = \"Group_Subsites\".\"GroupID\"")
 			->innerJoin('Group_Members', "\"Group_Members\".\"GroupID\"=\"Group\".\"ID\" AND \"Group_Members\".\"MemberID\" = $member->ID")
 			->innerJoin('Group_Roles', "\"Group_Roles\".\"GroupID\"=\"Group\".\"ID\"")
 			->innerJoin('PermissionRole', "\"Group_Roles\".\"PermissionRoleID\"=\"PermissionRole\".\"ID\"")
@@ -386,7 +386,7 @@ class Subsite extends DataObject implements PermissionProvider {
 	/**
 	 * Checks if a member can be granted certain permissions, regardless of the subsite context.
 	 * Similar logic to {@link Permission::checkMember()}, but only returns TRUE
-	 * if the member is part of a group with the "AccessAllSubsites" flag set.
+	 * if the member is part of a group with the "AccessDefaultSite" flag set.
 	 * If more than one permission is passed to the method, at least one of them must
 	 * be granted for if to return TRUE.
 	 * 
@@ -414,7 +414,7 @@ class Subsite extends DataObject implements PermissionProvider {
 		$groupCount = DB::query("
 			SELECT COUNT(\"Permission\".\"ID\")
 			FROM \"Permission\"
-			INNER JOIN \"Group\" ON \"Group\".\"ID\" = \"Permission\".\"GroupID\" AND \"Group\".\"AccessAllSubsites\" = 1
+			INNER JOIN \"Group\" ON \"Group\".\"ID\" = \"Permission\".\"GroupID\" AND \"Group\".\"AccessDefaultSite\" = 1
 			INNER JOIN \"Group_Members\" ON \"Group_Members\".\"GroupID\" = \"Permission\".\"GroupID\"
 			WHERE \"Permission\".\"Code\" IN ('$SQL_perms')
 			AND \"MemberID\" = {$memberID}
@@ -429,7 +429,7 @@ class Subsite extends DataObject implements PermissionProvider {
 			INNER JOIN \"PermissionRole\" ON \"Group_Roles\".\"PermissionRoleID\"=\"PermissionRole\".\"ID\"
 			INNER JOIN \"PermissionRoleCode\" ON \"PermissionRole\".\"ID\"=\"PermissionRoleCode\".\"RoleID\"
 			WHERE \"PermissionRoleCode\".\"Code\" IN ('$SQL_perms')
-			AND \"Group\".\"AccessAllSubsites\" = 1
+			AND \"Group\".\"AccessDefaultSite\" = 1
 			AND \"MemberID\" = {$memberID}
 		")->value();
 

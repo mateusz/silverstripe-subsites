@@ -86,34 +86,34 @@ Group:
    admin:
       Title: Admin
       Code: admin
-      AccessAllSubsites: 1
+      AccessDefaultSite: 1
    editor:
       Title: Editor
       Code: editor
-      AccessAllSubsites: 1
+      AccessDefaultSite: 1
    subsite1_group:
       Title: subsite1_group
       Code: subsite1_group
-      AccessAllSubsites: 0
+      AccessDefaultSite: 0
       Subsites: =>Subsite.subsite1
    subsite2_group:
       Title: subsite2_group
       Code: subsite2_group
-      AccessAllSubsites: 0
+      AccessDefaultSite: 0
       Subsites: =>Subsite.subsite2
    subsite1admins:
       Title: subsite1admins
       Code: subsite1admins
-      AccessAllSubsites: 0
+      AccessDefaultSite: 0
       Subsites: =>Subsite.subsite1
    allsubsitesauthors:
       Title: allsubsitesauthors
       Code: allsubsitesauthors
-      AccessAllSubsites: 1
+      AccessDefaultSite: 1
    subsite1_group_via_role:
       Title: subsite1_group_via_role
       Code: subsite1_group_via_role
-      AccessAllSubsites: 1
+      AccessDefaultSite: 1
       Roles: =>PermissionRole.role1
 Permission:
    admin:

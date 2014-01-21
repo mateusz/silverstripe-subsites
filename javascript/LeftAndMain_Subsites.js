@@ -85,26 +85,7 @@
 				this._super(e);
 			}
 		});
-		
-		// Subsite tab of Group editor
-		$('#Form_ItemEditForm_AccessAllSubsites').entwine({
-			/**
-			 * Constructor: onmatch
-			 */
-			onmatch: function () {
-				this.showHideSubsiteList();
-				
-				var ref=this;
-				$('#Form_ItemEditForm_AccessAllSubsites input').change(function() {
-					ref.showHideSubsiteList();
-				});
-			},
-			
-			showHideSubsiteList: function () {
-				$('#Form_ItemEditForm_Subsites').parent().parent().css('display', ($('#Form_ItemEditForm_AccessAllSubsites_1').is(':checked') ? 'none':''));
-			}
-		});
-		
+
 		$('.cms-edit-form').entwine({
 			/**
 			 * TODO: Fix with Entwine API extension. See https://github.com/silverstripe/silverstripe-subsites/pull/125
